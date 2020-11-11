@@ -11,14 +11,14 @@ module Spa.Page exposing
 
 -}
 
-import Shared
+import Shared exposing (OutMsg)
 import Spa.Document exposing (Document)
 import Spa.Url exposing (Url)
 
 
 type alias Page params model msg =
-    { init : Shared.Model -> Url params -> ( model, Cmd msg )
-    , update : msg -> model -> ( model, Cmd msg )
+    { init : Shared.Model -> Url params -> ( model, Cmd msg, List OutMsg )
+    , update : msg -> model -> ( model, Cmd msg, List OutMsg )
     , view : model -> Document msg
     , subscriptions : model -> Sub msg
     , save : model -> Shared.Model -> Shared.Model
@@ -31,8 +31,8 @@ static :
     }
     -> Page params (Url params) msg
 static page =
-    { init = \_ url -> ( url, Cmd.none )
-    , update = \_ model -> ( model, Cmd.none )
+    { init = \_ url -> ( url, Cmd.none, [] )
+    , update = \_ model -> ( model, Cmd.none, [] )
     , view = page.view
     , subscriptions = \_ -> Sub.none
     , save = always identity
@@ -47,8 +47,8 @@ sandbox :
     }
     -> Page params model msg
 sandbox page =
-    { init = \_ url -> ( page.init url, Cmd.none )
-    , update = \msg model -> ( page.update msg model, Cmd.none )
+    { init = \_ url -> ( page.init url, Cmd.none. [] )
+    , update = \msg model -> ( page.update msg model, Cmd.none, [] )
     , view = page.view
     , subscriptions = \_ -> Sub.none
     , save = always identity
@@ -64,8 +64,16 @@ element :
     }
     -> Page params model msg
 element page =
-    { init = \_ params -> page.init params
-    , update = \msg model -> page.update msg model
+    { init = \_ params ->
+        let
+            (model, cmd) = page.init params
+        in
+        (model, cmd, [])
+    , update = \msg model ->
+        let
+            (updatedModel, cmd) = page.update msg model
+        in
+        (updatedMode, cmd, [])
     , view = page.view
     , subscriptions = page.subscriptions
     , save = always identity
@@ -74,8 +82,8 @@ element page =
 
 
 application :
-    { init : Shared.Model -> Url params -> ( model, Cmd msg )
-    , update : msg -> model -> ( model, Cmd msg )
+    { init : Shared.Model -> Url params -> ( model, Cmd msg, List OutMsg )
+    , update : msg -> model -> ( model, Cmd msg, List OutMsg )
     , view : model -> Document msg
     , subscriptions : model -> Sub msg
     , save : model -> Shared.Model -> Shared.Model
