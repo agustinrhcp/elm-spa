@@ -28,7 +28,7 @@ module Spa.Generated.Pages exposing
     )
 
 {{pagesImports}}
-import Shared
+import Shared exposing (OutMsg)
 import Spa.Document as Document exposing (Document)
 import Spa.Generated.Route as Route exposing (Route)
 import Spa.Page exposing (Page)
@@ -90,8 +90,8 @@ load model =
 
 
 type alias Upgraded params model msg =
-    { init : params -> Shared.Model -> ( Model, Cmd Msg )
-    , update : msg -> model -> ( Model, Cmd Msg )
+    { init : params -> Shared.Model -> ( Model, Cmd Msg, List OutMsg )
+    , update : msg -> model -> ( Model, Cmd Msg, List OutMsg )
     , bundle : model -> Bundle
     }
 
@@ -108,10 +108,10 @@ upgrade : (model -> Model) -> (msg -> Msg) -> Page params model msg -> Upgraded 
 upgrade toModel toMsg page =
     let
         init_ params shared =
-            page.init shared (Url.create params shared.key shared.url) |> Tuple.mapBoth toModel (Cmd.map toMsg)
+            page.init shared (Url.create params shared.key shared.url) |> mapFirstAndSecond toModel (Cmd.map toMsg)
 
         update_ msg model =
-            page.update msg model |> Tuple.mapBoth toModel (Cmd.map toMsg)
+            page.update msg model |> mapFirstAndSecond toModel (Cmd.map toMsg)
 
         bundle_ model =
             { view = \\_ -> page.view model |> Document.map toMsg
@@ -127,6 +127,11 @@ upgrade toModel toMsg page =
     , update = update_
     , bundle = bundle_
     }
+
+
+mapFirstAndSecond : (a -> x) -> (b -> y) -> ( a, b, c ) -> ( x, y, c )
+mapFirstAndSecond mapFirst mapSecond ( first, second, third ) =
+    ( mapFirst first, mapSecond second, third )
 
 
 pages :
@@ -227,7 +232,7 @@ pagesInit : List Path -> String
 pagesInit paths =
     Utils.function
         { name = "init"
-        , annotation = [ "Route", "Shared.Model", "( Model, Cmd Msg )" ]
+        , annotation = [ "Route", "Shared.Model", "( Model, Cmd Msg, List OutMsg )" ]
         , inputs = [ "route" ]
         , body =
             Utils.caseExpression
@@ -263,7 +268,7 @@ pagesUpdate : List Path -> String
 pagesUpdate paths =
     Utils.function
         { name = "update"
-        , annotation = [ "Msg", "Model", "( Model, Cmd Msg )" ]
+        , annotation = [ "Msg", "Model", "( Model, Cmd Msg, List OutMsg )" ]
         , inputs = [ "bigMsg bigModel" ]
         , body =
             Utils.caseExpression
@@ -289,7 +294,7 @@ pagesUpdate paths =
                                     cases
 
                                 else
-                                    cases ++ [ ( "_", "( bigModel, Cmd.none )" ) ]
+                                    cases ++ [ ( "_", "( bigModel, Cmd.none, [] )" ) ]
                            )
                 }
         }

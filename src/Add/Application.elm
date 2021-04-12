@@ -8,7 +8,7 @@ create path =
     """
 module Pages.{{name}} exposing (Params, Model, Msg, page)
 
-import Shared
+import Shared exposing (OutMsg(..))
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url as Url exposing (Url)
@@ -38,9 +38,9 @@ type alias Model =
     {}
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Url Params -> ( Model, Cmd Msg, List OutMsg )
 init shared { params } =
-    ( {}, Cmd.none )
+    ( {}, Cmd.none, [] )
 
 
 
@@ -51,11 +51,11 @@ type Msg
     = ReplaceMe
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, List OutMsg )
 update msg model =
     case msg of
         ReplaceMe ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, [] )
 
 
 save : Model -> Shared.Model -> Shared.Model

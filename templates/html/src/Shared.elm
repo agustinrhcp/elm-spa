@@ -6,6 +6,8 @@ module Shared exposing
     , subscriptions
     , update
     , view
+    , OutMsg(..)
+    , handleOutMsgs
     )
 
 import Browser.Navigation exposing (Key)
@@ -14,7 +16,6 @@ import Html.Attributes exposing (class, href)
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Url exposing (Url)
-
 
 
 -- INIT
@@ -44,6 +45,9 @@ init flags url key =
 type Msg
     = ReplaceMe
 
+type OutMsg
+    = ReplaceMe
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -57,6 +61,21 @@ subscriptions model =
     Sub.none
 
 
+handleOutMsgs : List OutMsg -> Model -> ( Model, Cmd Msg )
+handleOutMsgs msgs model =
+    List.foldl handleOutMsg ( model, Cmd.none ) msgs
+
+
+handleOutMsg : OutMsg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+handleOutMsg outMsg ( model, cmds ) =
+    case outMsg of
+        ReplaceMe ->
+            ( model
+            , Cmd.batch
+                [ cmds
+                , Cmd.none
+                ]
+            )
 
 -- VIEW
 
